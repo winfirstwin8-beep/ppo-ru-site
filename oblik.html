@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Облік членів профспілки — ППО Ремонтного управління</title><script src="config.js"></script>
+<style>html,body{margin:0;height:100%;font:15px/1.5 "Segoe UI",Roboto,Arial,sans-serif;background:#f6f7f9}
+.wrap{max-width:1400px;margin:0 auto;padding:0 18px}
+.topnav{background:#0f4a2c;color:#fff}
+.topnav .wrap{display:flex;gap:4px;align-items:center;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.topnav a{color:#fff;text-decoration:none;padding:6px 12px;border-radius:7px;font-size:14px;font-weight:600;opacity:.9}
+.topnav a:hover,.topnav a.on{background:rgba(255,255,255,.14);opacity:1}
+.topnav .brand{margin-right:auto;font-weight:700;letter-spacing:.02em}
+
+.frame{position:absolute;top:50px;left:0;right:0;bottom:0} iframe{border:0;width:100%;height:100%;display:block;background:#f6f7f9}
+.alt{position:fixed;right:12px;bottom:10px;font-size:12px;background:#fff;border:1px solid #e2e6ec;border-radius:8px;padding:4px 10px}
+@media (max-width:600px){.frame{top:88px}}</style></head>
+<body><nav class="topnav"><div class="wrap"><a class="brand" href="index.html">ППО РУ</a><a href="index.html">Головна</a><a href="profkom.html">Профком</a><a class="on" href="oblik.html">Облік членів (вхід)</a></div></nav>
+<div class="frame"><iframe id="app" title="Облік членів профспілки" allow="clipboard-write" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+<a class="alt" id="alt" target="_blank" rel="noopener">Відкрити в окремому вікні ↗</a>
+<script>const u=window.PPO_API+'';document.getElementById('app').src=u;document.getElementById('alt').href=u;</script>
+</body></html>
