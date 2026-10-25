@@ -1,6 +1,6 @@
 /* Портал ППО РУ — оболонка. Дані беруться з Apps Script (../config.js → window.PPO_API).
    Персональні дані членів тут не зберігаються: облік відкривається з Apps Script у рамці. */
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const dmy = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : (s || '');
@@ -16,7 +16,8 @@ const I = {
   doc: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>',
   tel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
   oblik: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3H8z"/><path d="M5 6h3v1h8V6h3v15H5z"/><path d="M9 12h6M9 16h4"/></svg>',
-  news: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5"/></svg>'
+  news: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5"/></svg>',
+  users: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 11.5-4.2"/><rect x="15" y="14" width="6" height="6" rx="1.2"/><path d="M16.5 14v-1.5a1.5 1.5 0 0 1 3 0V14"/></svg>'
 };
 
 /* тема */
@@ -40,7 +41,8 @@ const ROUTES = {
   contacts: { title: 'Контакти', nav: 'menu', back: '#/menu', render: viewContacts },
   menu: { title: 'Ще', nav: 'menu', render: viewMenu },
   profkom: { title: 'Профспілковий комітет', nav: 'profkom', frame: () => window.PPO_API + '?view=profkom&only=1' },
-  oblik: { title: 'Облік членів', nav: 'oblik', frame: () => window.PPO_API }
+  oblik: { title: 'Облік членів', nav: 'oblik', frame: () => window.PPO_API },
+  users: { title: 'Користувачі та доступ', nav: 'menu', back: '#/menu', frame: () => window.PPO_API + '?view=users' }
 };
 function route() {
   const key = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'home';
@@ -148,6 +150,15 @@ function viewMenu() {
       <a class="row" href="#/docs">${I.doc}<span class="t">Документи</span><span class="s">Статут, КД, заяви</span></a>
       <a class="row" href="#/contacts">${I.tel}<span class="t">Контакти</span>${I.chev}</a>
     </nav>
+    <p class="kick" style="margin:4px 4px 0">Доступ до обліку</p>
+    <section class="card" style="padding:0;overflow:hidden">
+      <a class="row" href="#/users">${I.users}<span class="t">Користувачі та права доступу</span>${I.chev}</a>
+      <div style="padding:10px 16px 12px;border-top:1px solid var(--line-2);font-size:13.5px;display:grid;gap:6px">
+        <div><b>«Редагування»</b> — вносить зміни в облік, публікує новини, додає користувачів і змінює їхні права.</div>
+        <div><b>«Перегляд»</b> — лише переглядає облік, нічого не змінює.</div>
+        <div style="color:var(--mute)">Вхід — одноразовим кодом на email зі списку користувачів. Зняти позначку «активний» — доступ закривається одразу. Змінювати список можуть лише користувачі з роллю «редагування».</div>
+      </div>
+    </section>
     <section class="list">
       <div class="row"><span class="t">Тема</span><div class="seg" role="group" aria-label="Тема">
         ${[['auto', 'Авто'], ['light', 'Світла'], ['dark', 'Темна']].map(x => `<button type="button" data-th="${x[0]}" class="${t === x[0] ? 'on' : ''}" aria-pressed="${t === x[0]}">${x[1]}</button>`).join('')}</div></div>
