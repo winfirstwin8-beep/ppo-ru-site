@@ -1,6 +1,6 @@
 /* Портал ППО РУ — оболонка. Дані беруться з Apps Script (../config.js → window.PPO_API).
    Персональні дані членів тут не зберігаються: облік відкривається з Apps Script у рамці. */
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const dmy = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : (s || '');
@@ -17,6 +17,7 @@ const I = {
   tel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
   oblik: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3H8z"/><path d="M5 6h3v1h8V6h3v15H5z"/><path d="M9 12h6M9 16h4"/></svg>',
   news: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>',
   users: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 11.5-4.2"/><rect x="15" y="14" width="6" height="6" rx="1.2"/><path d="M16.5 14v-1.5a1.5 1.5 0 0 1 3 0V14"/></svg>'
 };
 
@@ -42,7 +43,8 @@ const ROUTES = {
   menu: { title: 'Ще', nav: 'menu', render: viewMenu },
   profkom: { title: 'Профспілковий комітет', nav: 'profkom', frame: () => window.PPO_API + '?view=profkom&only=1' },
   oblik: { title: 'Облік членів', nav: 'oblik', frame: () => window.PPO_API },
-  users: { title: 'Користувачі та доступ', nav: 'menu', back: '#/menu', frame: () => window.PPO_API + '?view=users' }
+  users: { title: 'Користувачі та доступ', nav: 'menu', back: '#/menu', frame: () => window.PPO_API + '?view=users' },
+  install: { title: 'Встановити на телефон', nav: 'menu', back: '#/menu', render: viewInstall }
 };
 function route() {
   const key = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'home';
@@ -80,7 +82,7 @@ function newsHtml(list) {
 function viewHome() {
   withHome(() => {
     const s = H.stats;
-    $('#main').innerHTML = `
+    $('#main').innerHTML = `${installBanner()}
     <section class="card"><p class="kick">Первинна профспілкова організація</p>
       <p style="margin:4px 0 0;font-weight:600">${esc(String(H.org || '').replace(/^Первинна профспілкова організація\s*/i, ''))}</p></section>
     <div class="stats">
@@ -96,6 +98,7 @@ function viewHome() {
       <a class="tile" href="#/docs">${I.doc}Документи</a>
       <a class="tile" href="#/contacts">${I.tel}Контакти</a>
     </div>`;
+    bindInstall();
   });
 }
 function viewNews() {
@@ -149,6 +152,7 @@ function viewMenu() {
       <a class="row" href="#/join">${I.join}<span class="t">Як вступити до профспілки</span>${I.chev}</a>
       <a class="row" href="#/docs">${I.doc}<span class="t">Документи</span><span class="s">Статут, КД, заяви</span></a>
       <a class="row" href="#/contacts">${I.tel}<span class="t">Контакти</span>${I.chev}</a>
+      <a class="row" href="#/install">${I.phone}<span class="t">Встановити на телефон</span>${isStandalone() ? '<span class="s">встановлено</span>' : I.chev}</a>
     </nav>
     <p class="kick" style="margin:4px 4px 0">Доступ до обліку</p>
     <section class="card" style="padding:0;overflow:hidden">
@@ -167,6 +171,62 @@ function viewMenu() {
     </section>
     <p class="note">Персональні дані членів на телефоні не зберігаються: облік завжди відкривається з Google-таблиці.</p>`;
   document.querySelectorAll('[data-th]').forEach(b => b.onclick = () => { LS.set('theme', b.dataset.th); applyTheme(); viewMenu(); });
+}
+
+/* встановлення на телефон */
+let deferredPrompt = null;
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const canInstall = () => !isStandalone() && (!!deferredPrompt || isIOS);
+const installLater = () => Date.now() - (+LS.get('installLater') || 0) < 14 * 864e5;
+function currentKey() { return (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'home'; }
+function rerender() { const k = currentKey(); if (['home', 'menu', 'install'].includes(k) && !$('#main').hidden) ROUTES[k].render(); }
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; rerender(); });
+window.addEventListener('appinstalled', () => { deferredPrompt = null; toast('ППО РУ встановлено на телефон'); rerender(); });
+function installBanner() {
+  if (!canInstall() || installLater()) return '';
+  return `<section class="card inst" aria-label="Встановлення на телефон">
+    <div class="hd"><img src="icons/icon-192.png" alt=""><div style="flex:1"><b>Встановіть ППО РУ на телефон</b>
+      <p style="margin:2px 0 0;font-size:13px;color:var(--mute)">Іконка на екрані, швидкий доступ до новин, оголошень і обліку</p></div></div>
+    <div class="btns"><button type="button" class="btn" id="instLater">Пізніше</button><button type="button" class="btn pri" id="instGo">Встановити</button></div></section>`;
+}
+function bindInstall() {
+  if ($('#instLater')) $('#instLater').onclick = () => { LS.set('installLater', String(Date.now())); rerender(); };
+  if ($('#instGo')) $('#instGo').onclick = doInstall;
+}
+function doInstall() {
+  if (deferredPrompt) {
+    const p = deferredPrompt; p.prompt();
+    p.userChoice.then(c => { deferredPrompt = null; if (c && c.outcome === 'dismissed') LS.set('installLater', String(Date.now())); rerender(); }).catch(() => {});
+  } else location.hash = '#/install';
+}
+function viewInstall() {
+  if (isStandalone()) { $('#main').innerHTML = '<div class="okbar">Сайт уже встановлено на цьому пристрої. Відкривайте його з іконки «ППО РУ».</div>'; return; }
+  $('#main').innerHTML = `
+    ${deferredPrompt ? `<section class="card inst"><div class="hd"><img src="icons/icon-192.png" alt=""><b style="flex:1">ППО РУ «ГТСУ»</b></div>
+      <button type="button" class="btn pri full" id="instGo">Встановити</button></section>` : ''}
+    <section class="card"><h2>iPhone, iPad</h2><ol class="how">
+      <li>Відкрийте сайт у браузері <b>Safari</b>.</li>
+      <li>Натисніть «Поділитися» (квадрат зі стрілкою вгору).</li>
+      <li>Виберіть «<b>На початковий екран</b>» і натисніть «Додати».</li></ol></section>
+    <section class="card"><h2>Android</h2><ol class="how">
+      <li>Відкрийте сайт у <b>Chrome</b>.</li>
+      <li>Натисніть кнопку «Встановити» вище або меню ⋮ у правому верхньому куті.</li>
+      <li>Виберіть «<b>Встановити застосунок</b>» або «Додати на головний екран».</li></ol></section>
+    <p class="note">Персональні дані членів на телефоні не зберігаються — лише файли самого сайту, щоб він швидко відкривався.</p>`;
+  bindInstall();
+}
+
+/* оновлення версій */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    const ask = w => { if (w && navigator.serviceWorker.controller) { $('#upd').hidden = false; $('#updGo').onclick = () => w.postMessage({ type: 'SKIP_WAITING' }); } };
+    if (reg.waiting) ask(reg.waiting);
+    reg.addEventListener('updatefound', () => { const w = reg.installing; if (w) w.addEventListener('statechange', () => { if (w.state === 'installed') ask(w); }); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+  }).catch(() => {});
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (reloading) return; reloading = true; location.reload(); });
 }
 
 /* завантаження документів */
