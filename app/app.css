@@ -123,3 +123,8 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 .how{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px}
 #upd{position:fixed;left:12px;right:12px;bottom:calc(var(--nav) + 12px + env(safe-area-inset-bottom));z-index:6;max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 10px 10px 14px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 #upd span{flex:1}
+.hact{display:flex;align-items:center;gap:12px}
+.addbtn{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:16px;background:var(--pri);color:#fff;font-size:13px;font-weight:600;white-space:nowrap}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .addbtn{color:#0d1a12}}
+:root[data-theme="dark"] .addbtn{color:#0d1a12}
+a.btn{text-decoration:none}

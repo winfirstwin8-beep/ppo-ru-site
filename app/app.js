@@ -1,6 +1,6 @@
 /* Портал ППО РУ — оболонка. Дані беруться з Apps Script (../config.js → window.PPO_API).
    Персональні дані членів тут не зберігаються: облік відкривається з Apps Script у рамці. */
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.3.0';
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const dmy = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : (s || '');
@@ -44,7 +44,8 @@ const ROUTES = {
   profkom: { title: 'Профспілковий комітет', nav: 'profkom', frame: () => window.PPO_API + '?view=profkom&only=1' },
   oblik: { title: 'Облік членів', nav: 'oblik', frame: () => window.PPO_API },
   users: { title: 'Користувачі та доступ', nav: 'menu', back: '#/menu', frame: () => window.PPO_API + '?view=users' },
-  install: { title: 'Встановити на телефон', nav: 'menu', back: '#/menu', render: viewInstall }
+  install: { title: 'Встановити на телефон', nav: 'menu', back: '#/menu', render: viewInstall },
+  post: { title: 'Нове оголошення', nav: 'home', back: '#/home', frame: () => window.PPO_API + '?view=news' }
 };
 function route() {
   const key = (location.hash.replace(/^#\/?/, '').split('?')[0]) || 'home';
@@ -53,6 +54,7 @@ function route() {
   document.title = r.title === 'ППО РУ «ГТСУ»' ? r.title : r.title + ' — ППО РУ';
   document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.g === r.nav));
   $('#back').hidden = !r.back; $('#back').onclick = () => { location.hash = r.back; };
+  if (key === 'post') NEED_FRESH = true;
   if (r.frame) {
     const u = r.frame(), f = $('#ifr');
     if (f.dataset.src !== u) { f.src = u; f.dataset.src = u; $('#alt').href = u; }
@@ -64,7 +66,9 @@ function route() {
 }
 window.addEventListener('hashchange', route);
 
+let NEED_FRESH = false;
 function withHome(fn) {
+  if (NEED_FRESH) { NEED_FRESH = false; H = null; }
   if (H) return fn();
   $('#main').innerHTML = '<p class="loading">Завантаження…</p>';
   loadHome().then(fn).catch(e => { $('#main').innerHTML = '<p class="loading">Не вдалося завантажити дані: ' + esc(e.message) + '</p>'; });
@@ -90,7 +94,7 @@ function viewHome() {
       ${s.oru ? `<div class="stat oru"><b>${esc(s.oru)}</b><span>членів ${esc(H.oruName || 'ОРУ')}</span></div>` : `<div class="stat"><b>${esc(s.pct)}%</b><span>охоплення</span></div>`}
       <div class="stat"><b>${esc(s.staff)}</b><span>працівників</span></div>
     </div>
-    <section class="card"><h2>Новини та оголошення <a href="#/news" style="font-size:13px">Усі${H.news.length ? ' (' + H.news.length + ')' : ''}</a></h2>
+    <section class="card"><h2>Новини та оголошення <span class="hact"><a href="#/news" style="font-size:13px">Усі${H.news.length ? ' (' + H.news.length + ')' : ''}</a><a class="addbtn" href="#/post" title="Для профкому: потрібен вхід з роллю «редагування»">+ Оголошення</a></span></h2>
       ${newsHtml(H.news.slice(0, 3))}</section>
     <div class="tiles">
       <a class="tile" href="#/oblik">${I.oblik}Облік членів</a>
@@ -103,7 +107,8 @@ function viewHome() {
 }
 function viewNews() {
   withHome(() => {
-    $('#main').innerHTML = `<section class="card">${newsHtml(H.news.slice(0, NEWS_LIMIT))}
+    $('#main').innerHTML = `<a class="btn pri full" href="#/post">+ Нове оголошення</a>
+      <section class="card">${newsHtml(H.news.slice(0, NEWS_LIMIT))}
       ${H.news.length > NEWS_LIMIT ? `<button class="btn sm" id="moreNews" type="button">Показати ще (${H.news.length - NEWS_LIMIT})</button>` : ''}</section>`;
     if ($('#moreNews')) $('#moreNews').onclick = () => { NEWS_LIMIT += 10; viewNews(); };
   });
@@ -156,6 +161,7 @@ function viewMenu() {
     </nav>
     <p class="kick" style="margin:4px 4px 0">Доступ до обліку</p>
     <section class="card" style="padding:0;overflow:hidden">
+      <a class="row" href="#/post">${I.news}<span class="t">Опублікувати оголошення</span>${I.chev}</a>
       <a class="row" href="#/users">${I.users}<span class="t">Користувачі та права доступу</span>${I.chev}</a>
       <div style="padding:10px 16px 12px;border-top:1px solid var(--line-2);font-size:13.5px;display:grid;gap:6px">
         <div><b>«Редагування»</b> — вносить зміни в облік, публікує новини, додає користувачів і змінює їхні права.</div>
