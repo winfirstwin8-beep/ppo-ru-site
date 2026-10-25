@@ -1,6 +1,6 @@
 /* Портал ППО РУ — оболонка. Дані беруться з Apps Script (../config.js → window.PPO_API).
    Персональні дані членів тут не зберігаються: облік відкривається з Apps Script у рамці. */
-const APP_VERSION = '1.4.0';
+const APP_VERSION = '1.5.0';
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const dmy = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : (s || '');
@@ -30,8 +30,10 @@ function api(params) {
   const u = new URL(window.PPO_API); Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
   return fetch(u.toString()).then(r => r.json()).then(j => { if (j && j.error) throw new Error(j.error); return j; });
 }
-let H = null, NEWS_LIMIT = 5;
-const loadHome = () => H ? Promise.resolve(H) : api({ api: 'home' }).then(h => (H = h));
+let H = null, NEWS_LIMIT = 5, HP = null;
+/* остання копія публічних даних головної — щоб сторінки відкривались миттєво (лише загальні дані, без персональних) */
+function cachedHome() { try { const c = JSON.parse(LS.get('homeCache') || 'null'); return c && c.d ? c.d : null; } catch (e) { return null; } }
+const loadHome = () => H ? Promise.resolve(H) : (HP || (HP = api({ api: 'home' }).then(h => { H = h; HP = null; LS.set('homeCache', JSON.stringify({ t: Date.now(), d: h })); return h; }, e => { HP = null; throw e; })));
 
 /* маршрути */
 const ROUTES = {
@@ -56,8 +58,10 @@ function route() {
   $('#back').hidden = !r.back; $('#back').onclick = () => { location.hash = r.back; };
   if (key === 'post') NEED_FRESH = true;
   if (r.frame) {
-    const u = r.frame(), f = $('#ifr');
-    if (f.dataset.src !== u) { f.src = u; f.dataset.src = u; $('#alt').href = u; }
+    if (key === 'oblik') LS.set('usedOblik', '1');
+    const u = r.frame(), f = frameFor(key, u);
+    document.querySelectorAll('#frame iframe').forEach(x => { x.hidden = x !== f; });
+    $('#alt').href = u;
     $('#frame').hidden = false; $('#main').hidden = true;
   } else {
     $('#frame').hidden = true; $('#main').hidden = false;
@@ -65,11 +69,33 @@ function route() {
   }
 }
 window.addEventListener('hashchange', route);
+/* окрема рамка для кожного розділу обліку: після першого відкриття розділ не перезавантажується */
+function frameFor(key, u) {
+  let f = document.querySelector('#frame iframe[data-k="' + key + '"]');
+  if (!f) {
+    f = document.createElement('iframe');
+    f.dataset.k = key; f.title = (ROUTES[key] && ROUTES[key].title) || 'Облік';
+    f.setAttribute('allow', 'clipboard-write'); f.referrerPolicy = 'no-referrer-when-downgrade';
+    f.hidden = true; f.src = u;
+    $('#frame').insertBefore(f, $('#alt'));
+  }
+  return f;
+}
+if ($('#ifr')) $('#ifr').remove();
+/* хто вже користувався обліком — підвантажити його заздалегідь, у фоні */
+setTimeout(() => { if (LS.get('usedOblik') === '1') frameFor('oblik', ROUTES.oblik.frame()); }, 2500);
 
 let NEED_FRESH = false;
 function withHome(fn) {
   if (NEED_FRESH) { NEED_FRESH = false; H = null; }
   if (H) return fn();
+  const c = cachedHome();
+  if (c) {
+    const key = currentKey(), shown = JSON.stringify(c);
+    H = c; fn(); H = null;
+    loadHome().then(h => { if (JSON.stringify(h) !== shown && currentKey() === key && !$('#main').hidden) fn(); }).catch(() => { if (!H) H = c; });
+    return;
+  }
   $('#main').innerHTML = '<p class="loading">Завантаження…</p>';
   loadHome().then(fn).catch(e => { $('#main').innerHTML = '<p class="loading">Не вдалося завантажити дані: ' + esc(e.message) + '</p>'; });
 }
