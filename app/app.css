@@ -128,3 +128,13 @@ main{padding:12px 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .addbtn{color:#0d1a12}}
 :root[data-theme="dark"] .addbtn{color:#0d1a12}
 a.btn{text-decoration:none}
+/* сповіщення */
+.nhead{display:flex;justify-content:space-between;align-items:center;margin:4px 4px 0}
+.nrow{display:flex;align-items:center;gap:10px;padding:10px 16px;color:var(--ink);border-top:1px solid var(--line-2)}
+.nrow:first-child{border-top:0}
+.nrow .dot{width:8px;height:8px;border-radius:50%;flex:none;background:transparent}
+.nrow.unread{background:var(--pri-bg)}.nrow.unread .dot{background:var(--pri)}.nrow.unread .nh{font-weight:650}
+.nrow .nt{flex:1;min-width:0}.nrow .nm{display:block;font-size:12px;color:var(--mute)}.nrow .nh{display:block;font-weight:500}
+.tgl{width:100%;border:0;background:none;font:inherit;text-align:left;cursor:pointer;padding:8px 16px}
+.swt{width:44px;height:26px;flex:none;border-radius:13px;padding:3px;display:flex;background:#c9d0cc;justify-content:flex-start}
+.swt.on{background:var(--pri);justify-content:flex-end}.swt span{width:20px;height:20px;border-radius:50%;background:#fff}
