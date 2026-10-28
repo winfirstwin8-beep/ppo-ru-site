@@ -1,7 +1,7 @@
 /* Service worker порталу ППО РУ.
    Зберігає на телефоні ЛИШЕ файли самого сайту (оболонку), щоб він швидко відкривався.
    Дані з Google-таблиці (облік, новини, документи) завжди беруться з мережі й не зберігаються. */
-const CACHE = 'ppo-v1.5.0';
+const CACHE = 'ppo-v1.5.1';
 const SHELL = [
   './', 'index.html', 'app.css', 'app.js', 'notify.js', '../config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-192.png', 'icons/maskable-512.png',
