@@ -1,6 +1,6 @@
 /* Портал ППО РУ — оболонка. Дані беруться з Apps Script (../config.js → window.PPO_API).
    Персональні дані членів тут не зберігаються: облік відкривається з Apps Script у рамці. */
-const APP_VERSION = '1.5.2';
+const APP_VERSION = '1.5.3';
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const dmy = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : (s || '');

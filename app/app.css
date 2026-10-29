@@ -28,7 +28,7 @@ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 .top h1{flex:1;font-size:17px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logo{width:40px;height:40px;border-radius:50%;background:#fff;padding:2px;overflow:hidden;flex:none;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px}
 .logo img{width:100%;height:100%;object-fit:contain;display:block}
-.orgcard{display:flex;align-items:center;gap:14px}.orgcard img{width:76px;height:76px;flex:none;object-fit:contain}
+.orgcard{display:flex;align-items:center;gap:14px}.orgcard img{width:76px;height:76px;flex:none;object-fit:contain;background:#fff;border-radius:50%;padding:3px}
 .ibtn{position:relative;width:44px;height:44px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .bdg{position:absolute;top:6px;right:6px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#e8a400;color:#1d1600;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
 
