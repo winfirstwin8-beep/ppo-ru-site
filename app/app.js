@@ -1,6 +1,6 @@
 /* Портал ППО РУ — оболонка. Дані беруться з Apps Script (../config.js → window.PPO_API).
    Персональні дані членів тут не зберігаються: облік відкривається з Apps Script у рамці. */
-const APP_VERSION = '1.5.1';
+const APP_VERSION = '1.5.2';
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const dmy = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : (s || '');
@@ -113,8 +113,8 @@ function viewHome() {
   withHome(() => {
     const s = H.stats;
     $('#main').innerHTML = `${installBanner()}
-    <section class="card"><p class="kick">Первинна профспілкова організація</p>
-      <p style="margin:4px 0 0;font-weight:600">${esc(String(H.org || '').replace(/^Первинна профспілкова організація\s*/i, ''))}</p></section>
+    <section class="card orgcard"><img src="icons/logo-256.png" alt="Логотип профспілки"><div><p class="kick">Первинна профспілкова організація</p>
+      <p style="margin:4px 0 0;font-weight:600">${esc(String(H.org || '').replace(/^Первинна профспілкова організація\s*/i, ''))}</p></div></section>
     <div class="stats">
       <div class="stat ru"><b>${esc(s.ru)}</b><span>членів ППО РУ</span></div>
       ${s.oru ? `<div class="stat oru"><b>${esc(s.oru)}</b><span>членів ${esc(H.oruName || 'ОРУ')}</span></div>` : `<div class="stat"><b>${esc(s.pct)}%</b><span>охоплення</span></div>`}
